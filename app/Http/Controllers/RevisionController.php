@@ -9,42 +9,49 @@ use Illuminate\Support\Facades\Auth;
 
 class RevisionController extends Controller
 {
-    // Customer request revision
     public function store(Request $request, Order $order)
     {
         if ($order->user_id !== Auth::id()) abort(403);
 
+        // Check revision limit
         if (!$order->canRequestRevision()) {
-            return back()->with('error', 'Revisi tidak dapat diajukan pada status order ini.');
+            $remaining = $order->getRemainingRevisions();
+            $daysUntil = $order->getDaysUntilEvent();
+            
+            if ($remaining <= 0) {
+                return back()->with('error', 'Anda telah mencapai batas maksimal 3 kali revisi.');
+            }
+            
+            if ($daysUntil < 7) {
+                return back()->with('error', 'Revisi hanya dapat diajukan minimal H-7 sebelum tanggal event.');
+            }
         }
 
         $validated = $request->validate([
             'revision_note' => 'required|string|max:1000'
         ]);
 
-        $revision = OrderRevision::create([
+        OrderRevision::create([
             'order_id' => $order->id,
             'user_id' => Auth::id(),
             'revision_note' => $validated['revision_note'],
             'status' => 'pending'
         ]);
 
-        // Send notification to chat
         OrderChat::create([
             'order_id' => $order->id,
             'user_id' => Auth::id(),
-            'message' => '📝 Permintaan revisi diajukan: ' . $validated['revision_note']
+            'message' => '📝 Permintaan revisi diajukan (Sisa: ' . ($order->getRemainingRevisions() - 1) . ' kali): ' . $validated['revision_note']
         ]);
 
-        return back()->with('success', 'Permintaan revisi berhasil diajukan.');
+        return back()->with('success', 'Permintaan revisi berhasil diajukan. Sisa revisi: ' . ($order->getRemainingRevisions() - 1));
     }
 
-    // EO respond to revision
     public function respond(Request $request, OrderRevision $revision)
     {
         $order = $revision->order;
         
-        if (!Auth::user() || Auth::user()->role !== 'eo' || $order->eo_id !== Auth::id()) {
+        if (Auth::user()->role !== 'eo' || $order->eo_id !== Auth::id()) {
             abort(403);
         }
 
@@ -59,7 +66,6 @@ class RevisionController extends Controller
             'responded_at' => now()
         ]);
 
-        // Send notification to chat
         $emoji = $validated['status'] === 'approved' ? '✅' : '❌';
         OrderChat::create([
             'order_id' => $order->id,

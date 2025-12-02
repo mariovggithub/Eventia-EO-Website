@@ -3,6 +3,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Order extends Model
 {
@@ -22,14 +23,20 @@ class Order extends Model
         'approved_at',
         'payment_status',
         'paid_at',
-        'total'
+        'total',
+        'negotiated_price',
+        'price_breakdown',
+        'price_agreed',
+        'price_agreed_at'
     ];
 
     protected $casts = [
         'event_date' => 'date',
         'approved_at' => 'datetime',
         'paid_at' => 'datetime',
-        'self_organized' => 'boolean'
+        'price_agreed_at' => 'datetime',
+        'self_organized' => 'boolean',
+        'price_agreed' => 'boolean'
     ];
 
     public function user() {
@@ -55,9 +62,18 @@ class Order extends Model
     public function revisions() {
         return $this->hasMany(OrderRevision::class);
     }
+
+    public function ratings() {
+        return $this->hasMany(Rating::class);
+    }
     
     public function getFormattedTotalAttribute() {
-        return 'Rp ' . number_format($this->total, 0, ',', '.');
+        $amount = $this->negotiated_price ?? $this->total ?? 0;
+        return 'Rp ' . number_format($amount, 0, ',', '.');
+    }
+
+    public function getFinalPriceAttribute() {
+        return $this->negotiated_price ?? $this->total ?? 0;
     }
     
     // Status helpers
@@ -76,12 +92,44 @@ class Order extends Model
     public function isPaid() {
         return $this->payment_status === 'paid';
     }
+
+    public function isCompleted() {
+        return $this->status === 'completed';
+    }
     
     public function canChat() {
         return $this->isApproved();
     }
     
     public function canRequestRevision() {
-        return $this->isPending() || $this->isApproved();
+        // Max 3 revisions
+        $revisionCount = $this->revisions()->count();
+        if ($revisionCount >= 3) {
+            return false;
+        }
+
+        // Only H-7 or more before event
+        $daysUntilEvent = Carbon::now()->diffInDays($this->event_date, false);
+        if ($daysUntilEvent < 7) {
+            return false;
+        }
+
+        return $this->isPending() || ($this->isApproved() && !$this->isPaid());
+    }
+
+    public function canRate() {
+        return $this->isCompleted() && $this->isPaid();
+    }
+
+    public function hasBeenRatedBy($userId) {
+        return $this->ratings()->where('user_id', $userId)->exists();
+    }
+
+    public function getRemainingRevisions() {
+        return max(0, 3 - $this->revisions()->count());
+    }
+
+    public function getDaysUntilEvent() {
+        return Carbon::now()->diffInDays($this->event_date, false);
     }
 }
