@@ -13,16 +13,12 @@ use App\Http\Controllers\EO\ProfileController as EOProfile;
 use App\Http\Controllers\Vendor\DashboardController as VendorDashboard;
 use App\Http\Controllers\Vendor\ProductController;
 
-// ========================================
 // PUBLIC ROUTES
-// ========================================
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about', [HomeController::class, 'about'])->name('about');
 Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
 
-// ========================================
-// AUTHENTICATION ROUTES
-// ========================================
+// AUTHENTICATION
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
@@ -32,9 +28,7 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-// ========================================
-// USER ROUTES (Customer)
-// ========================================
+// USER ROUTES
 Route::middleware(['auth', 'role:user'])->group(function () {
     // Order Management
     Route::get('/order', [OrderController::class, 'create'])->name('order.create');
@@ -54,33 +48,30 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::post('/order/{order}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
     Route::post('/order/{order}/complete', [OrderController::class, 'markCompleted'])->name('order.complete');
     
-    // Revision Management
+    // Revision Management (3x limit, 14 days)
     Route::post('/order/{order}/revision', [RevisionController::class, 'store'])->name('order.revision.store');
+    Route::get('/order/{order}/revision/check', [RevisionController::class, 'checkLimits'])->name('order.revision.check');
     
-    // Rating & Review
+    // Rating
     Route::post('/order/{order}/rating', [RatingController::class, 'store'])->name('order.rating.store');
     
     // Job Application
     Route::post('/jobs/{job}/apply', [JobController::class, 'apply'])->name('jobs.apply');
 });
 
-// ========================================
-// CHAT ROUTES (Accessible by all authenticated users)
-// ========================================
+// CHAT ROUTES (Simple - No Real-time)
 Route::middleware(['auth'])->group(function () {
     Route::post('/order/{order}/chat', [ChatController::class, 'store'])->name('order.chat.store');
     Route::get('/order/{order}/chat/messages', [ChatController::class, 'getMessages'])->name('order.chat.messages');
 });
 
-// ========================================
 // EVENT ORGANIZER ROUTES
-// ========================================
 Route::middleware(['auth', 'role:eo'])->prefix('eo')->name('eo.')->group(function () {
-    // Profile Management
+    // Profile
     Route::get('/profile', [EOProfile::class, 'show'])->name('profile');
     Route::put('/profile', [EOProfile::class, 'update'])->name('profile.update');
     
-    // Order Management
+    // Orders
     Route::get('/orders', [EODashboard::class, 'orders'])->name('orders');
     Route::get('/orders/{order}', [EODashboard::class, 'showOrder'])->name('orders.show');
     Route::post('/orders/{order}/approve', [EODashboard::class, 'approveOrder'])->name('orders.approve');
@@ -88,10 +79,7 @@ Route::middleware(['auth', 'role:eo'])->prefix('eo')->name('eo.')->group(functio
     Route::post('/orders/{order}/update-price', [EODashboard::class, 'updatePrice'])->name('orders.update-price');
     Route::post('/orders/{order}/update-status', [EODashboard::class, 'updateStatus'])->name('orders.update-status');
     
-    // Statistics (AJAX)
-    Route::get('/stats', [EODashboard::class, 'getStats'])->name('stats');
-    
-    // Hiring Management
+    // Hiring
     Route::get('/hiring', [HiringController::class, 'index'])->name('hiring');
     Route::post('/hiring', [HiringController::class, 'store'])->name('hiring.store');
     Route::delete('/hiring/{job}', [HiringController::class, 'destroy'])->name('hiring.destroy');
@@ -100,20 +88,13 @@ Route::middleware(['auth', 'role:eo'])->prefix('eo')->name('eo.')->group(functio
     Route::post('/revision/{revision}/respond', [RevisionController::class, 'respond'])->name('revision.respond');
 });
 
-// ========================================
 // VENDOR ROUTES
-// ========================================
 Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->group(function () {
-    // Order Management
     Route::get('/orders', [VendorDashboard::class, 'orders'])->name('orders');
-    
-    // Product Management
     Route::get('/products', [ProductController::class, 'index'])->name('products');
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 });
 
-// ========================================
-// API ROUTES (for AJAX calls)
-// ========================================
+// API ROUTES
 Route::get('/api/vendors/{category}', [OrderController::class, 'getVendorsByCategory'])->name('api.vendors');
