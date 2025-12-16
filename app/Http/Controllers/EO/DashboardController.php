@@ -275,4 +275,42 @@ class DashboardController extends Controller
 
         return response()->json($stats);
     }
+
+    /**
+ * Mark order as completed
+ */
+public function completeOrder(Order $order) {
+    $user = Auth::user();
+    
+    // Check authorization
+    if (!$user->eventOrganizer || $order->eo_id !== $user->eo_id) {
+        abort(403, 'Anda tidak memiliki akses untuk menyelesaikan order ini.');
+    }
+
+    // Check if order is paid
+    if (!$order->isPaid()) {
+        return back()->with('error', 'Order belum dibayar.');
+    }
+
+    // Check if already completed
+    if ($order->isCompleted()) {
+        return back()->with('info', 'Order sudah selesai sebelumnya.');
+    }
+
+    // Update status to completed
+    $order->update([
+        'status' => 'completed'
+    ]);
+
+    // Send notification to chat
+    OrderChat::create([
+        'order_id' => $order->id,
+        'user_id' => Auth::id(),
+        'message' => '🎉 Event telah selesai dilaksanakan!' . "\n\n" .
+                    'Terima kasih telah mempercayai kami. ' .
+                    'Silakan berikan rating untuk membantu kami meningkatkan layanan.'
+    ]);
+
+    return back()->with('success', 'Order berhasil ditandai sebagai selesai. Customer dapat memberikan rating sekarang.');
+}
 }

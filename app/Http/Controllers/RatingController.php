@@ -62,9 +62,6 @@ class RatingController extends Controller
             }
         }
 
-        // Mark order as rated
-        $order->update(['status' => 'completed']);
-
-        return back()->with('success', 'Terima kasih atas rating Anda!');
+        return back()->with('success', 'Terima kasih atas rating Anda! Rating telah berhasil disimpan.');
     }
 }

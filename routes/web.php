@@ -78,6 +78,7 @@ Route::middleware(['auth', 'role:eo'])->prefix('eo')->name('eo.')->group(functio
     Route::post('/orders/{order}/reject', [EODashboard::class, 'rejectOrder'])->name('orders.reject');
     Route::post('/orders/{order}/update-price', [EODashboard::class, 'updatePrice'])->name('orders.update-price');
     Route::post('/orders/{order}/update-status', [EODashboard::class, 'updateStatus'])->name('orders.update-status');
+    Route::post('/orders/{order}/complete', [EODashboard::class, 'completeOrder'])->name('orders.complete');
     
     // Hiring
     Route::get('/hiring', [HiringController::class, 'index'])->name('hiring');
