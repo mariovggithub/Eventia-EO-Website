@@ -95,7 +95,7 @@
                     </a>
                     @else
                     <div class="bg-blue-50 border border-blue-200 rounded p-3 mb-3 text-sm text-blue-800">
-                        <strong>Perhatian:</strong> Silakan review penawaran harga ini. Jika setuju, klik tombol "Setujui Harga" untuk melanjutkan pembayaran. Jika tidak setuju, Anda dapat menolak dan diskusikan via chat atau ajukan revisi.
+                        <strong>Perhatian:</strong> Silakan review penawaran harga ini. Jika setuju, klik tombol "Setujui Harga" untuk melanjutkan pembayaran.
                     </div>
                     
                     <div class="flex gap-2">
@@ -105,7 +105,7 @@
                                 ✓ Setujui Harga
                             </button>
                         </form>
-                        <button onclick="openRejectPriceModal()" class="flex-1 px-6 py-3 rounded-lg border border-red-600 text-red-600 font-semibold hover:bg-red-50">
+                        <button type="button" onclick="openRejectPriceModal()" class="flex-1 px-6 py-3 rounded-lg border border-red-600 text-red-600 font-semibold hover:bg-red-50">
                             ✗ Tolak & Diskusi
                         </button>
                     </div>
@@ -125,7 +125,7 @@
             @if(auth()->user()->isUser() && auth()->id() === $order->user_id)
                 @if($order->canRequestRevision())
                 <div class="mt-3">
-                    <button onclick="openRevisionModal()" class="w-full px-4 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10">
+                    <button type="button" onclick="openRevisionModal()" class="w-full px-4 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10">
                         📝 Ajukan Revisi (Sisa: {{ $order->getRemainingRevisions() }}x)
                     </button>
                 </div>
@@ -133,7 +133,7 @@
 
                 @if($order->isPaid() && $order->isCompleted() && $order->canRate() && !$order->hasBeenRatedBy(auth()->id()))
                 <div class="mt-4 pt-4 border-t">
-                    <button onclick="openRatingModal()" class="w-full px-6 py-3 rounded-lg bg-amber-600 text-white font-semibold hover:bg-amber-700">
+                    <button type="button" onclick="openRatingModal()" class="w-full px-6 py-3 rounded-lg bg-amber-600 text-white font-semibold hover:bg-amber-700">
                         ⭐ Berikan Rating
                     </button>
                 </div>
@@ -156,7 +156,7 @@
                         ✓ Setujui Pesanan
                     </button>
                 </form>
-                <button onclick="openRejectModal()" class="flex-1 px-4 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700">
+                <button type="button" onclick="openRejectModal()" class="flex-1 px-4 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700">
                     ✗ Tolak Pesanan
                 </button>
             </div>
@@ -189,8 +189,8 @@
 
                     @if(auth()->user()->isEO() && $revision->isPending() && $order->eo_id === auth()->user()->eo_id)
                     <div class="mt-3 flex gap-2">
-                        <button onclick="respondRevision({{ $revision->id }}, 'approved')" class="px-3 py-1 rounded bg-green-600 text-white text-sm">Setujui</button>
-                        <button onclick="respondRevision({{ $revision->id }}, 'rejected')" class="px-3 py-1 rounded bg-red-600 text-white text-sm">Tolak</button>
+                        <button type="button" onclick="respondRevision({{ $revision->id }}, 'approved')" class="px-3 py-1 rounded bg-green-600 text-white text-sm">Setujui</button>
+                        <button type="button" onclick="respondRevision({{ $revision->id }}, 'rejected')" class="px-3 py-1 rounded bg-red-600 text-white text-sm">Tolak</button>
                     </div>
                     @endif
                 </div>
@@ -308,7 +308,7 @@
         <h4 class="font-bold mb-4">Tolak Penawaran Harga</h4>
         <form method="POST" action="{{ route('order.reject-price', $order) }}">
             @csrf
-            <textarea name="reason" rows="4" placeholder="Jelaskan alasan Anda menolak harga ini dan berapa harga yang Anda harapkan..." class="w-full border rounded-lg p-3 focus:border-teal-600 focus:ring-teal-600" required></textarea>
+            <textarea name="reason" rows="4" placeholder="Jelaskan alasan Anda menolak harga ini..." class="w-full border rounded-lg p-3 focus:border-teal-600 focus:ring-teal-600" required></textarea>
             <div class="mt-4 flex justify-end gap-2">
                 <button type="button" onclick="closeRejectPriceModal()" class="px-4 py-2 rounded-lg border hover:bg-gray-50">Batal</button>
                 <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">Kirim & Diskusi di Chat</button>
@@ -336,18 +336,14 @@
 </div>
 
 {{-- Rating Modal --}}
-<div id="rating-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+<div id="rating-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40" style="display: none;">
     <div class="bg-white rounded-xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-4">
             <h4 class="font-bold text-xl">⭐ Berikan Rating & Ulasan</h4>
-            <button type="button" onclick="closeRatingModal()" class="text-gray-400 hover:text-gray-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
+            <button type="button" onclick="closeRatingModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
         </div>
 
-        <form method="POST" action="{{ route('order.rating.store', $order) }}">
+        <form method="POST" action="{{ route('order.rating.store', $order) }}" id="rating-form">
             @csrf
             
             {{-- Rating untuk EO --}}
@@ -364,7 +360,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Rating EO <span class="text-red-500">*</span></label>
                     <div class="flex gap-2" id="eo-rating-stars">
                         @for($i = 1; $i <= 5; $i++)
-                        <button type="button" onclick="setRating('eo', {{ $i }})" class="text-4xl text-gray-300 hover:text-yellow-500 transition-all transform hover:scale-110 rating-star" data-rating="eo" data-value="{{ $i }}">
+                        <button type="button" onclick="setRating('eo', {{ $i }})" class="text-4xl text-gray-300 hover:text-yellow-500 transition-all transform hover:scale-110 rating-star cursor-pointer" data-rating="eo" data-value="{{ $i }}">
                             ★
                         </button>
                         @endfor
@@ -408,7 +404,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Rating <span class="text-red-500">*</span></label>
                         <div class="flex gap-2" id="vendor-{{ $vendor->id }}-rating-stars">
                             @for($i = 1; $i <= 5; $i++)
-                            <button type="button" onclick="setRating('vendor-{{ $vendor->id }}', {{ $i }})" class="text-4xl text-gray-300 hover:text-yellow-500 transition-all transform hover:scale-110 rating-star" data-rating="vendor-{{ $vendor->id }}" data-value="{{ $i }}">
+                            <button type="button" onclick="setRating('vendor-{{ $vendor->id }}', {{ $i }})" class="text-4xl text-gray-300 hover:text-yellow-500 transition-all transform hover:scale-110 rating-star cursor-pointer" data-rating="vendor-{{ $vendor->id }}" data-value="{{ $i }}">
                                 ★
                             </button>
                             @endfor
@@ -460,17 +456,18 @@
         <form id="revision-response-form" method="POST">
             @csrf
             <input type="hidden" name="status" id="revision-status">
-            <textarea name="response_note" rows="4" placeholder="Berikan respon Anda..." class="w-full border rounded-lg p-3 focus:border-teal-600 focus:ring-teal-600" required></textarea>
-            <div class="mt-4 flex justify-end gap-2">
-                <button type="button" onclick="closeRevisionResponseModal()" class="px-4 py-2 rounded-lg border hover:bg-gray-50">Batal</button>
-                <button type="submit" id="revision-submit-btn" class="px-4 py-2 rounded-lg text-white">Kirim</button>
-            </div>
-        </form>
-    </div>
+            <textarea name="response_note" rows="4" placeholder="Berikan respon Anda..." class="w-full border rounded-lg p-3 focus:border-teal-600 focus:ring-teal-600Continue9:38 PM" required></textarea>
+<div class="mt-4 flex justify-end gap-2">
+<button type="button" onclick="closeRevisionResponseModal()" class="px-4 py-2 rounded-lg border hover:bg-gray-50">Batal</button>
+<button type="submit" id="revision-submit-btn" class="px-4 py-2 rounded-lg text-white">Kirim</button>
 </div>
-
+</form>
+</div>
+</div>
 @push('scripts')
 <script>
+console.log('Script loaded');
+
 // Chat functionality
 function sendMessage(e) {
     e.preventDefault();
@@ -528,34 +525,60 @@ setInterval(loadMessages, 5000);
 
 // Reject Price Modal
 function openRejectPriceModal() {
-    document.getElementById('reject-price-modal').classList.remove('hidden');
-    document.getElementById('reject-price-modal').classList.add('flex');
+    console.log('Open reject price modal');
+    const modal = document.getElementById('reject-price-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 }
+
 function closeRejectPriceModal() {
-    document.getElementById('reject-price-modal').classList.add('hidden');
+    const modal = document.getElementById('reject-price-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
 }
 
 // Revision Modal
 function openRevisionModal() {
-    document.getElementById('revision-modal').classList.removeContinue4:05 PM('hidden');
-document.getElementById('revision-modal').classList.add('flex');
+    console.log('Open revision modal');
+    const modal = document.getElementById('revision-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 }
+
 function closeRevisionModal() {
-document.getElementById('revision-modal').classList.add('hidden');
+    const modal = document.getElementById('revision-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
 }
+
 // Rating Modal
 function openRatingModal() {
-    document.getElementById('rating-modal').classList.remove('hidden');
-    document.getElementById('rating-modal').classList.add('flex');
+    console.log('Opening rating modal...');
+    const modal = document.getElementById('rating-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        console.log('Rating modal opened');
+    } else {
+        console.error('Rating modal not found!');
+    }
 }
 
 function closeRatingModal() {
-    document.getElementById('rating-modal').classList.add('hidden');
-    document.getElementById('rating-modal').classList.remove('flex');
+    console.log('Closing rating modal...');
+    const modal = document.getElementById('rating-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        console.log('Rating modal closed');
+    }
 }
 
 // Rating Stars dengan validasi
 function setRating(type, value) {
+    console.log('Setting rating:', type, value);
     const stars = document.querySelectorAll(`[data-rating="${type}"]`);
     const input = document.getElementById(`${type}_rating`);
     
@@ -581,70 +604,84 @@ function setRating(type, value) {
 }
 
 // Validasi form sebelum submit
-document.querySelector('#rating-modal form')?.addEventListener('submit', function(e) {
-    let isValid = true;
-    let errorMessage = '';
-    
-    // Validasi rating EO jika ada
-    const eoRatingInput = document.getElementById('eo_rating');
-    if (eoRatingInput && !eoRatingInput.value) {
-        isValid = false;
-        errorMessage += '- Rating EO wajib diisi\n';
-    }
-    
-    // Validasi rating vendor
-    const vendorRatingInputs = document.querySelectorAll('input[name^="vendors"][name$="[rating]"]');
-    vendorRatingInputs.forEach((input, index) => {
-        if (!input.value) {
+const ratingForm = document.getElementById('rating-form');
+if (ratingForm) {
+    ratingForm.addEventListener('submit', function(e) {
+        let isValid = true;
+        let errorMessage = '';
+        
+        // Validasi rating EO jika ada
+        const eoRatingInput = document.getElementById('eo_rating');
+        if (eoRatingInput && !eoRatingInput.value) {
             isValid = false;
-            errorMessage += `- Rating Vendor ${index + 1} wajib diisi\n`;
+            errorMessage += '- Rating EO wajib diisi\n';
+        }
+        
+        // Validasi rating vendor
+        const vendorRatingInputs = document.querySelectorAll('input[name^="vendors"][name$="[rating]"]');
+        vendorRatingInputs.forEach((input, index) => {
+            if (!input.value) {
+                isValid = false;
+                errorMessage += `- Rating Vendor ${index + 1} wajib diisi\n`;
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Mohon lengkapi rating berikut:\n\n' + errorMessage);
         }
     });
-    
-    if (!isValid) {
-        e.preventDefault();
-        alert('Mohon lengkapi rating berikut:\n\n' + errorMessage);
-    }
-});
-
-// Close modal on outside click
-document.getElementById('rating-modal')?.addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeRatingModal();
-    }
-});
+}
 
 // Reject Modal
 function openRejectModal() {
-document.getElementById('reject-modal').classList.remove('hidden');
-document.getElementById('reject-modal').classList.add('flex');
+    const modal = document.getElementById('reject-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 }
+
 function closeRejectModal() {
-document.getElementById('reject-modal').classList.add('hidden');
+    const modal = document.getElementById('reject-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
 }
+
 // Revision Response
 function respondRevision(revisionId, status) {
-document.getElementById('revision-status').value = status;
-document.getElementById('revision-response-form').action = /eo/revision/${revisionId}/respond;
-const btn = document.getElementById('revision-submit-btn');
-btn.textContent = status === 'approved' ? 'Setujui' : 'Tolak';
-btn.className = `px-4 py-2 rounded-lg text-white ${status === 'approved' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`;
+    document.getElementById('revision-status').value = status;
+    document.getElementById('revision-response-form').action = `/eo/revision/${revisionId}/respond`;
+    
+    const btn = document.getElementById('revision-submit-btn');
+    btn.textContent = status === 'approved' ? 'Setujui' : 'Tolak';
+    btn.className = `px-4 py-2 rounded-lg text-white ${status === 'approved' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`;
+    
+    const modal = document.getElementById('revision-response-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
 
-document.getElementById('revision-response-modal').classList.remove('hidden');
-document.getElementById('revision-response-modal').classList.add('flex');
-}
 function closeRevisionResponseModal() {
-document.getElementById('revision-response-modal').classList.add('hidden');
+    const modal = document.getElementById('revision-response-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
 }
+
 // Close modals on outside click
-['reject-price-modal', 'revision-modal', 'rating-modal', 'reject-modal', 'revision-response-modal'].forEach(id => {
-document.getElementById(id)?.addEventListener('click', function(e) {
-if (e.target === this) {
-this.classList.add('hidden');
-this.classList.remove('flex');
-}
+document.addEventListener('click', function(e) {
+    const modals = ['reject-price-modal', 'revision-modal', 'rating-modal', 'reject-modal', 'revision-response-modal'];
+    modals.forEach(id => {
+        const modal = document.getElementById(id);
+        if (modal && e.target === modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            if (id === 'rating-modal') {
+                modal.style.display = 'none';
+            }
+        }
+    });
 });
-});
+
+console.log('All functions loaded');
 </script>
 @endpush
 @endsection
