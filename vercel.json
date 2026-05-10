@@ -4,24 +4,28 @@
 
   "functions": {
     "api/index.php": {
-      "runtime": "vercel-php@0.6.0"
+      "runtime": "vercel-php@0.7.4"
     }
   },
 
   "routes": [
     {
       "src": "/build/(.*)",
-      "dest": "/public/build/$1"
+      "dest": "/public/build/"
     },
-    {
+    { 
       "src": "/(.*)",
       "dest": "/api/index.php"
+    },
+    {
+      "src": "/public/assets/(.*)",
+      "dest": "/public/assets/"
     }
   ],
 
   "env": {
     "APP_ENV": "production",
-    "APP_DEBUG": "false",
+    "APP_DEBUG": "true",
     "LOG_CHANNEL": "stderr",
     "CACHE_DRIVER": "array",
     "SESSION_DRIVER": "cookie",
